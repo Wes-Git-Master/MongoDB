@@ -8,7 +8,7 @@
 
  -------------------------------------------------------------------------------------
 
- -  db.users | .find(
+ - db.users | .find(
         {gender:'female', rating:2},
         {_id:false}                     - виключення id з обєкта при пошуку обєкта
         {_id:true}                      - тільки id
@@ -28,12 +28,12 @@
 
  -------------------------------------------------------------------------------------
 
- db.users | .find({
+ - db.users | .find({
       $or:[
           {age:12},
           {rating:2}
       ]
- }) |
+   }) |
 
  - $or[] - оператор пошуку за ключами (або/або)
 
@@ -46,13 +46,13 @@
 
  -------------------------------------------------------------------------------------
 
- db.users | .find({
+ - db.users | .find({
      age:{
          $not:{
              $in:[12,55,35,25,11,18]
          }
      }
- }) |
+  }) |
 
  - $not:{$in:[]} - пощук з вкладеністю
 
@@ -81,6 +81,80 @@
  - db.users.find({name:/v/i})        -  /v/i - пошук обєкта, по букві в name
 
  -------------------------------------------------------------------------------------
+
+ - db.users.find().sort({rating:1}) |    -  сортування
+                                                від меншого до більшого
+ - db.users.find().sort({rating:-1}) |   -  сортування
+                                                від більшого до меншого
+ - db.users.find().sort({rating:-1, age:-1}) |   -  сортування
+                                                       по декількох полях
+
+ -------------------------------------------------------------------------------------
+
+ db.users.find().sort({rating:-1, age:-1}).limit(2)   -  лімітування
+
+ db.users.find().sort({rating:-1, age:-1}).limit(2).skip(4)   -  пропустити
+
+ -------------------------------------------------------------------------------------
+
+ db.users.updateOne(
+     {_id:ObjectId('661d5a39e26eea6939c8d958')},   -  пошуковий обєкт
+     {$set:{rating:null}}                          -  $set:{} - метод set
+ )
+
+ db.users.updateOne(
+     {_id:ObjectId('661d5a39e26eea6939c8d958')},   -  пошуковий обєкт
+     {$unset:{rating:55}}                          -  $unset:{} - метод unset,
+                                                                  видалити поле
+ )
+
+ db.users.updateMany(
+     {gender:'male'},           -  пошукові обєкти
+     {$set:{gender:'animal'}}   -  $set:{} - метод set
+ )
+
+ -------------------------------------------------------------------------------------
+
+ db.users.find({'address.city':'Lviv'})      -  пошук в обєктах
+
+ db.users.find({studying:'js'})              -  пошук в масиві
+
+ db.users.find({rating:{$exists:0}})         -  пошук обєктів,
+ db.users.find({rating:null})                   в яких відсутнє поле
+ db.users.find({parents:{$exists:0}})
+
+ -------------------------------------------------------------------------------------
+
+ db.users.updateMany(                              -  апдейт всіх обєктів
+     {parents:{$exists:1}},
+     {$set:{'parents.$[]':'Karina'}}
+ )
+
+ db.users.find({})
+
+ db.users.updateOne(                               -  push
+     {_id:ObjectId('661d5a39e26eea6939c8d952')},
+     {$push:{studying:'python'}}
+ )
+
+ db.users.find({studying:{$size:2}})
+
+                                                   - $size: - кількість елементів
+
+ db.users.insertMany([                             - додавання масиву обєктів
+     {asd:12, age:55},
+     {eee:12, age:55},
+     {auuusd:12, age:55},
+ ])
+
+ db.users.deleteOne({_id:ObjectId('661d6491e26eea6939c8d960')})  -  видалення по id
+ db.users.deleteOne({_id:ObjectId('661d6491e26eea6939c8d95f')})
+ db.users.deleteOne({_id:ObjectId('661d5bdbe26eea6939c8d95d')})
+
+
+
+
+
 
 
 
