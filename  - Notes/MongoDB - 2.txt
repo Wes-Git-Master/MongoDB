@@ -1,0 +1,138 @@
+ =============================   Aggregation Operators   =============================
+
+ db.teacher.aggregate([])                            -  масив агрегацій
+
+ db.teacher.aggregate([                              -  ключове слово
+     {
+         $group: {                                   - < $group > - групування
+             _id: '$lesson'
+         }
+     }
+ ])
+
+ -------------------------------------------------------------------------------------
+
+ db.teacher.aggregate([
+     {
+         $group: {
+             _id: '$lesson',
+             minPayment: {$min: '$payment'},         -  < $min: > - мінімальне з-ння
+             maxPayment: {$max: '$payment'},         -  < $max: > - максимальне з-ння
+             avgPayment: {$avg: '$payment'},         -  < $avg: > - середнє арифметисне
+             countOfTeachers: {$sum: 1},             -  < $sum:1 > - сумма * 1
+             countOfDoubleTeachers: {$sum: 2},       -  < $sum:2 > - сумма * 2
+             sum: {$sum: '$payment'}                 -  < $sum:''> - сумма
+
+         }
+     },
+     {
+         $match: {                                   -  пошук / фільтрування
+             minPayment: {$lt: 2500}
+         }
+     },
+     {
+         $sort: {                                    -  сортування
+             sum: -1                                    1 = asc, -1 = desc
+         }
+     },
+     {
+         $project: {                                 -  ввімкнення або вимкнення
+             _id: 0,                                    поля || полів
+             myLesson: '$_id',
+             minPayment:1,
+             maxPayment: 1,
+             avgPayment: 1,
+             countOfTeachers: 1,
+             countOfDoubleTeachers: 1,
+             sum: 1
+         }
+     }
+ ])
+
+ =====================================   Join   ======================================
+
+ db.teacher.aggregate([
+     {
+         $match:{                           -  ...
+             class_curator:{$gt:4}
+         }
+     },
+     {
+         $lookup:{                          -  обєднання колекцій (join)
+             from:'students',               - < from: > - звідки взяти дані
+             localField:'class_curator',    - < localField: > - по якому полю обєдн.
+             foreignField:'class',          - < foreignField: > - по якому полю підкл.
+             as:'myStudents'                - < as: > - назва нового масиву
+         }
+     },
+     {
+         $match:{
+             // 'myStudents.parents.name':'Ira'
+             'myStudents._id':{$exists:1}
+
+         }
+     }
+ ])
+
+ =================================   pagination   ====================================
+
+ db.teacher.aggregate([
+     {
+         $match:{
+             class_curator:{$gt:4}
+         },
+     },
+     {
+         $skip:4
+     },
+     {
+         $limit:2
+     },
+ ])
+
+ =================================     unwind     ====================================
+
+ db.teacher.aggregate([
+     {
+         $lookup:{
+             from:'students',
+             localField:'class_curator',
+             foreignField:'class',
+             as:'myStudents'
+         }
+     },
+     {
+         $unwind:'$myStudents'           -  < $unwind: >  -  розкладання масиву на
+     },                                                      складові частини
+     {
+       $unwind: '$myStudents.parents'
+     },
+     {
+         $match:{
+             'myStudents.parents.profession':'doctor'
+         }
+     },
+     {
+         $count:'doctorsCount'           -  < $count: >  -  вирахування кількості
+     }
+ ])
+
+ =================================     length     ====================================
+
+ db.students.aggregate([
+     {
+         $addFields:{                           -  < $addFields: >  -  розрахунки
+             nameLength:{$strLenCP:'$name'}     -  < $strLenCP: >   -  вирахування
+         }                                                              довжини
+     },
+     {
+         $match:{
+             nameLength:4
+         }
+     },
+     {
+         $project:{
+             nameLength:0
+         }
+     }
+ ])
